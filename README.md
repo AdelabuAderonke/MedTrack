@@ -3,7 +3,7 @@
 A RESTful API built with Flask-RESTX and MySQL for managing hospital appointments, patients, and doctors. This API allows patients to book appointments online without physically visiting the hospital. It fully supports CRUD operations for patients, doctors, and appointments
 
 ## Built With
-- **Backend Framework:** Flask 3.1.3  
+- **Backend Framework:** Flask 2.3.3  
 - **API:** Flask-RESTX 1.3.2  
 - **Database:** MySQL  
 - **Database Connector:** mysql-connector-python 8.0+  
