@@ -30,17 +30,25 @@ cd MedTrack
   source venv/bin/activate  #  venv\Scripts\activate -for windows
   ```
 3. Install the dependencies
-  ```pip install -r requirements.txt
+  ```
+  pip install -r requirements.txt
   ```
 4. Set up and connect the database
-  ```python conn_database.py
+  ```
+   python conn_database.py
   ```
 5. Run the application
-   ```python run.py
    ```
-6. API endpoints
-6. Testing
-   ```python -m unittest tests.test_database
+   python run.py
+   ```
+6. API documentation access(remember to add the /docs)
+   ```
+   http://127.0.0.1:5000/docs
+   ```
+   
+7. Testing
+   ```
+   python -m unittest tests.test_database
    ```
 ## Prerequisites
 ## Usage
