@@ -1,23 +1,28 @@
 from flask import Flask
 from flask_restx import Api
-from app.config import Config
-from app.database import db, migrate
-
-# Import models so Flask-Migrate can detect them
-from app.models.patient import Patient
-from app.models.doctor import Doctor
-from app.models.appointment import Appointment
+from flask.json.provider import DefaultJSONProvider
+from datetime import datetime, date
 
 # Import namespaces
 from app.namespaces.patients import ns as patients_ns
 from app.namespaces.doctors import ns as doctors_ns
 from app.namespaces.appointments import ns as appointments_ns
 
-app = Flask(__name__)
-app.config.from_object(Config)
 
-db.init_app(app)
-migrate.init_app(app, db)
+class CustomJSONProvider(DefaultJSONProvider):
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        return super().default(obj)
+
+
+app = Flask(__name__)
+
+# ✅ IMPORTANT: set provider CLASS (not instance)
+app.json_provider_class = CustomJSONProvider
+
+# Reinitialize json system
+app.json = app.json_provider_class(app)
 
 api = Api(
     app,

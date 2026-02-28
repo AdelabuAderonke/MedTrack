@@ -1,82 +1,128 @@
-from flask_restx import Namespace, fields
-from app.database import db
-from app.models.patient import Patient
-from .base_resource import BaseResource
+from flask_restx import Namespace, Resource, fields
+from app.models.patient import PatientModel 
 
-ns = Namespace("patients", description="Patient CRUD operations")
+ns = Namespace('patients', description='Patient operations')
 
-patient_model = ns.model("Patient", {
-    "name": fields.String(required=True, example="Jane Doe"),
-    "email":     fields.String(required=True, example="jane@email.com"),
-    "phone":     fields.String(example="07700900000"),
-    "gender":       fields.String(example="Female"),
+patient_model = ns.model('Patient', {
+    'id': fields.Integer(readonly=True),
+    'name': fields.String(required=True),
+    'gender': fields.String(required=True),
+    'email': fields.String(required=True),
+    'phone_number': fields.String(required=True)
 })
 
-@ns.route("/")
-class PatientList(BaseResource):
-
+@ns.route('/')
+class PatientList(Resource):
     def get(self):
-        """Get all patients"""
+        """List all patients"""
         try:
-            patients = Patient.query.all()
-            return [p.to_dict() for p in patients], 200
-        except Exception as e:
-            return self.handle_server_error(e)
+            # Create instance
 
-    @ns.expect(patient_model, validate=True)
+            patient_instance = PatientModel()
+            # Call methods with self
+            patients = patient_instance.get_all()
+            total = patient_instance.count()
+            return {
+                'patients': patients,
+                'total': total
+            }, 200
+        except Exception as e:
+            return {
+                'message': 'Server error occurred',
+                'error': str(e)
+            }, 500
+    
+    @ns.expect(patient_model)
     def post(self):
-        """Register a new patient"""
+        """Create a new patient"""
         try:
+            
             data = ns.payload
-            existing = Patient.query.filter_by(email=data["email"]).first()
+            
+            # Check if email already exists
+            patient_instance = PatientModel()
+            existing = patient_instance.get_by_email(data['email'])
             if existing:
-                return self.handle_conflict("A patient with this email already exists")
-            patient = Patient(**data)
-            db.session.add(patient)
-            db.session.commit()
-            return patient.to_dict(), 201
+                return {
+                    'message': 'Email already registered'
+                }, 409
+            
+            # Create patient
+            patient_id = patient_instance.create(data)
+            
+            # Fetch created patient
+            patient = patient_instance.get_by_id(patient_id)
+            
+            return {
+                'message': 'Patient created successfully',
+                'patient': patient
+            }, 201
+        except ValueError as ve:
+            return {
+                'message': str(ve)
+            }, 409
         except Exception as e:
-            db.session.rollback()
-            return self.handle_server_error(e)
+            return {
+                'message': 'Server error occurred',
+                'error': str(e)
+            }, 500
 
-@ns.route("/<int:id>")
-class PatientDetail(BaseResource):
-
+@ns.route('/<int:id>')
+class PatientDetail(Resource):
     def get(self, id):
         """Get a patient by ID"""
         try:
-            patient = Patient.query.get(id)
+            patient_instance = PatientModel()
+            patient = patient_instance.get_by_id(id)
+            
             if not patient:
-                return self.handle_not_found("Patient", id)
-            return patient.to_dict(), 200
+                return {'message': f'Patient with ID {id} not found'}, 404
+            
+            return patient, 200
         except Exception as e:
-            return self.handle_server_error(e)
-
+            return {'message': f'Server error: {str(e)}'}, 500
+    
     @ns.expect(patient_model)
     def put(self, id):
         """Update a patient"""
         try:
-            patient = Patient.query.get(id)
-            if not patient:
-                return self.handle_not_found("Patient", id)
-            data = ns.payload
-            for key, value in data.items():
-                setattr(patient, key, value)
-            db.session.commit()
-            return patient.to_dict(), 200
+            patient_instance = PatientModel()
+            if not patient_instance.get_by_id(id):
+                ns.abort(404, "Patient not found")
+            patient_instance.update(id, ns.payload)
+            return {'message': 'Patient updated'}
         except Exception as e:
-            db.session.rollback()
-            return self.handle_server_error(e)
-
+            return {'message': f'Server error: {str(e)}'}, 500
+    
     def delete(self, id):
         """Delete a patient"""
         try:
-            patient = Patient.query.get(id)
-            if not patient:
-                return self.handle_not_found("Patient", id)
-            db.session.delete(patient)
-            db.session.commit()
-            return {"message": "Patient deleted successfully"}, 200
+            patient_instance = PatientModel()
+            if not patient_instance.get_by_id(id):
+                ns.abort(404, "Patient not found")
+            patient_instance.delete_by_id(id)
+            return '', 204
         except Exception as e:
-            db.session.rollback()
-            return self.handle_server_error(e)
+            return {'message': f'Server error: {str(e)}'}, 500  
+@ns.route('/search')
+class PatientSearch(Resource):
+    @ns.doc(params={'name': 'Name to search for'})
+    def get(self):
+        """Search patients by name"""
+        try:
+            from flask import request
+            name = request.args.get('name', '')
+            
+            if not name:
+                return {'message': 'Name parameter is required'}, 400
+            
+            patient_instance = PatientModel()
+            patients = patient_instance.search_by_name(name)
+            
+            return {
+                'patients': patients,
+                'total': len(patients)
+            }, 200
+            
+        except Exception as e:
+            return {'message': f'Server error: {str(e)}'}, 500
