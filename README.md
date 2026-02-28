@@ -41,7 +41,14 @@ cd MedTrack
    ```
    python run.py
    ```
-6. API documentation access(remember to add the /docs)
+
+6. Project management: Github board
+     ### Below are tasks listed on Github board  for the application
+    ![Github board Screenshot](images/Github_board.png)
+
+
+
+7. API documentation access(remember to add the /docs)
    ```
    http://127.0.0.1:5000/docs
    ```
@@ -52,7 +59,7 @@ cd MedTrack
    ### Appointment
     ![AppointmentEndpoints Screenshot](images/Appointment_endpoints.png)
    
-7. Testing
+8. Testing
    ```
    python -m unittest tests.test_database
    ```
