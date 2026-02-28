@@ -17,6 +17,9 @@ class PatientModel(BaseModel):
         self.cursor = self.conn.cursor()
         
         try:
+            for field in ['name', 'email', 'phone_number']:
+                if any(c in patient_data[field] for c in [";", "--", "'"]):
+                    raise ValueError(f"Invalid characters in {field}")
             self.cursor.execute("""
                 INSERT INTO Patients (name, phone_number, email, gender)
                 VALUES (%s, %s, %s, %s)

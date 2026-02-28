@@ -16,6 +16,9 @@ class AppointmentModel(BaseModel):
         self.cursor = self.conn.cursor()
         
         try:
+            for field in ['reason']:
+                if field in appointment_data and any(c in appointment_data[field] for c in [";", "--", "'"]):
+                    raise ValueError(f"Invalid characters in {field}")
             self.cursor.execute("""
                 INSERT INTO Appointments (patient_id, doctor_id, appointment_date, time, reason, status)
                 VALUES (%s, %s, %s, %s, %s, 'scheduled')
