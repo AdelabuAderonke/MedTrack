@@ -48,13 +48,16 @@ cd MedTrack
    ### Patient
    ![PatientEndpoints Screenshot](images/Patient_endpoints.png)
    ### Doctor
-    ![DoctorEndpoins Screenshot](images/Doctor_endpoints.png)
+    ![DoctorEndpoints Screenshot](images/Doctor_endpoints.png)
    ### Appointment
-    ![AppointmentEndpoins Screenshot](images/Appointment_endpoints.png)
+    ![AppointmentEndpoints Screenshot](images/Appointment_endpoints.png)
    
 7. Testing
    ```
    python -m unittest tests.test_database
+   ```
+   ```
+   python -m unittest tests.test_injection
    ```
 
 ## Acknowledgments
